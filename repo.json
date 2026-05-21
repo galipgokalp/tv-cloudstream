@@ -1,0 +1,8 @@
+{
+    "name": "Galip TV",
+    "description": "Kisisel Turkce icerik havuzu (film, dizi, belgesel, spor, canli TV)",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/galipgokalp/tv-cloudstream/builds/plugins.json"
+    ]
+}
