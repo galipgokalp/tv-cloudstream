@@ -22,10 +22,10 @@
     },
     {
         "iconUrl": "https://www.google.com/s2/favicons?domain=www.fullhdfilmizlesene.life&sz=%size%",
-        "fileHash": "sha256-e74d14130c7a69b1c970af0858602e7c616fac25e85c6182ee829d14c3df3821",
+        "fileHash": "sha256-9ac2a0eab82756c749ca79cc6ae09d87c2969c82ab1819f637490e45e7efe856",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/galipgokalp/tv-cloudstream",
-        "fileSize": 36076,
+        "fileSize": 36073,
         "status": 1,
         "language": "tr",
         "authors": [
@@ -34,7 +34,7 @@
         "tvTypes": [
             "Movie"
         ],
-        "version": 4,
+        "version": 5,
         "internalName": "FullHDFilmizlesene",
         "description": "Sinema zevkini evinize kadar getirdik. T\u00fcrkiye'nin lider Film sitesinde, en yeni filmleri Full HD izleyin.",
         "url": "https://raw.githubusercontent.com/galipgokalp/tv-cloudstream/builds/FullHDFilmizlesene.cs3",
