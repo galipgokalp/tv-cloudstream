@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.nicehttp.NiceResponse
 import java.lang.Math.floorMod
@@ -24,7 +25,37 @@ open class CloseLoadExtractor : ExtractorApi() {
 
         val iSource = app.get(url, referer = extRef)
         val obfuscatedScript = iSource.document.select("script").find { it.data().contains("eval(function(p,a,c,k,e") }?.data()?.trim()
-        getSubs(iSource, obfuscatedScript,subtitleCallback)
+        getSubs(iSource, obfuscatedScript, subtitleCallback)
+
+        // ! 2026-08-12 host-side dogrulandi: closeload artik dc_ obfuscation'ini KULLANMIYOR.
+        // ! Gercek stream URL'i artik dogrudan sayfanin schema.org VideoObject
+        // ! (<script type="application/ld+json">) blogundaki "contentUrl" alaninda,
+        // ! duz metin olarak yayinlaniyor (dogrulama: hls8.playmix.uno/.../master.txt,
+        // ! content-type: application/vnd.apple.mpegurl). dc_ zinciri fallback olarak kaldi.
+        val ldJsonUrl = iSource.document.select("script[type=application/ld+json]")
+            .firstNotNullOfOrNull { script ->
+                runCatching {
+                    val node = jacksonObjectMapper().readTree(script.data())
+                    node.get("contentUrl")?.asText()
+                }.getOrNull()
+            }
+
+        if (!ldJsonUrl.isNullOrBlank()) {
+            Log.d("Kekik_${this.name}", "ldJsonUrl » $ldJsonUrl")
+            callback.invoke(
+                newExtractorLink(
+                    source  = this.name,
+                    name    = this.name,
+                    url     = ldJsonUrl,
+                    ExtractorLinkType.M3U8
+                ) {
+                    this.referer = mainUrl
+                    this.quality = Qualities.Unknown.value
+                }
+            )
+            return
+        }
+
         getLinks(obfuscatedScript, callback)
     }
 
