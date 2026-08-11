@@ -24,8 +24,11 @@ import com.lagradost.cloudstream3.newMovieSearchResponse
 import com.lagradost.cloudstream3.newTvSeriesLoadResponse
 import com.lagradost.cloudstream3.newTvSeriesSearchResponse
 import com.lagradost.cloudstream3.toRatingInt
+import com.lagradost.cloudstream3.network.CloudflareKiller
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
+import okhttp3.Interceptor
+import okhttp3.Response
 import org.jsoup.nodes.Element
 
 
@@ -37,10 +40,32 @@ class FilmMakinesi : MainAPI() {
     override val hasQuickSearch = false
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
 
-    // ! CloudFlare bypass
+    // ! CloudFlare bypass (rate/istek deseni ile tetiklenen JS challenge icin savunma katmani).
+    // ! Su an TV'den gelen istekler (residential IP, dusuk hiz) challenge yemiyor (2026-08-12
+    // ! host-side dogrulandi) ama tetiklenirse CloudflareKiller (gizli WebView ile cf_clearance
+    // ! cerezi cozer) devreye girsin diye eklendi.
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 50L
     override var sequentialMainPageScrollDelay = 50L
+
+    private val cloudflareKiller by lazy { CloudflareKiller() }
+    private val interceptor      by lazy { CloudflareInterceptor(cloudflareKiller) }
+
+    class CloudflareInterceptor(private val cloudflareKiller: CloudflareKiller) : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val request  = chain.request()
+            val response = chain.proceed(request)
+            if (response.code == 503 || response.code == 403) {
+                val peek = response.peekBody(1024 * 1024).string()
+                if (peek.contains("cf_chl_opt") || peek.contains("Just a moment") ||
+                    peek.contains("Enable JavaScript and cookies to continue") ||
+                    peek.contains("Güvenlik taramasından geçiriliyorsunuz")) {
+                    return cloudflareKiller.intercept(chain)
+                }
+            }
+            return response
+        }
+    }
 
     // ! Kategori slug'lari 2026-08-11'de host-side dogrulandi (site tur-slug semasini degistirmis,
     // ! bazilarina "-fmN" soneki eklenmis; "Son Filmler"/"Son Diziler" yollari da degisti).
@@ -84,7 +109,8 @@ class FilmMakinesi : MainAPI() {
             url, headers = mapOf(
                 "User-Agent" to USER_AGENT,
                 "Referer" to mainUrl
-            )
+            ),
+            interceptor = interceptor
         ).document
 
         val home = document.select("div.film-list div.item-relative")
@@ -125,7 +151,7 @@ class FilmMakinesi : MainAPI() {
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val document = app.get("${mainUrl}/arama/?s=${query}").document
+        val document = app.get("${mainUrl}/arama/?s=${query}", interceptor = interceptor).document
 
         return document.select("div.film-list div.item-relative").mapNotNull { it.toSearchResult() }
     }
@@ -133,7 +159,7 @@ class FilmMakinesi : MainAPI() {
     override suspend fun quickSearch(query: String): List<SearchResponse> = search(query)
 
     override suspend fun load(url: String): LoadResponse? {
-        val document = app.get(url).document
+        val document = app.get(url, interceptor = interceptor).document
 
         // ! h1.title = "<Baslik> izle <span class=date>(<yil>)</span>" -> ownText() span'i disarida birakir
         val h1 = document.selectFirst("h1.title") ?: document.selectFirst("h1")
@@ -203,7 +229,7 @@ class FilmMakinesi : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         Log.d("FLMM", "data » $data")
-        val document = app.get(data).document
+        val document = app.get(data, interceptor = interceptor).document
 
         // Ana iframe'i bul ve öncelikli olarak 'data-src', yoksa 'src' niteliğini kullan
         val iframeSrc = document.selectFirst("div.after-player iframe")?.attr("data-src")

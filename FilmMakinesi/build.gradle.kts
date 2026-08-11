@@ -1,4 +1,4 @@
-version = 8
+version = 9
 
 cloudstream {
     authors     = listOf("keyiflerolsun", "usdogu")
@@ -14,5 +14,5 @@ cloudstream {
     **/
     status  = 1 // will be 3 if unspecified
     tvTypes = listOf("Movie")
-    iconUrl = "https://www.google.com/s2/favicons?domain=filmmakinesi.film&sz=%size%"
+    iconUrl = "https://www.google.com/s2/favicons?domain=filmmakinesi.to&sz=%size%"
 }
