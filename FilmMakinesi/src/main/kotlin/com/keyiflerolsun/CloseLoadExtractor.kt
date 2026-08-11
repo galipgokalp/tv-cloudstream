@@ -60,7 +60,11 @@ open class CloseLoadExtractor : ExtractorApi() {
     }
 
     private suspend fun getLinks(obfuscatedScript: String?, callback: (ExtractorLink) -> Unit) {
-        val rawScript        = getAndUnpack(obfuscatedScript!!)
+        if (obfuscatedScript == null) {
+            Log.d("Kekik_${this.name}", "obfuscatedScript bulunamadi, atlaniyor")
+            return
+        }
+        val rawScript         = getAndUnpack(obfuscatedScript)
         val helloVarmi = rawScript.contains("dc_hello")
         var dcRegex = Regex("dc_hello\\(\"([^\"]*)\"\\)", setOf(RegexOption.IGNORE_CASE))
         if (!helloVarmi) {
@@ -111,28 +115,24 @@ open class CloseLoadExtractor : ExtractorApi() {
         return link
     }
 
+    // ! 2026-08-12 host-side dogrulandi: eski (base64x1 -> reverse -> rot13 -> zaman-degisken-mod cikarma)
+    // ! zinciri artik GECERSIZ. Yeni zincir: birlestir -> ters cevir -> base64 CIFT coz -> XOR akis sifresi
+    // ! (acc=86 baslangic, her byte'ta acc=(acc+9)%256, plain=byte xor acc, acc=(acc+byte)%256).
+    // ! Canli veri uzerinde JS'de birebir calistirilip "https://...m3u8" ciktisi dogrulandi.
     fun dcNew(parts: List<String>): String {
-        var value = parts.joinToString("")
-        val decodedBytes = base64DecodeArray(value)
-        var result = String(decodedBytes, Charsets.ISO_8859_1).reversed()
-        val rot13Applied = StringBuilder()
-        for (c in result) {
-            if (c in 'a'..'z') {
-                val newChar = c + 13
-                rot13Applied.append(if (newChar > 'z') newChar - 26 else newChar)
-            } else if (c in 'A'..'Z') {
-                val newChar = c + 13
-                rot13Applied.append(if (newChar > 'Z') newChar - 26 else newChar)
-            } else {
-                rot13Applied.append(c)
-            }
-        }
-        result = rot13Applied.toString()
+        val joined = parts.joinToString("")
+        val reversed = joined.reversed()
+        val decodedOnce = String(base64DecodeArray(reversed), Charsets.ISO_8859_1)
+        val decodedTwice = String(base64DecodeArray(decodedOnce), Charsets.ISO_8859_1)
+
+        var acc = 86
         val unmix = StringBuilder()
-        for ((i, char) in result.withIndex()) {
-            var charCode = char.code
-            charCode = (charCode - (399756995 % (i + 5)) + 256) % 256
-            unmix.append(charCode.toChar())
+        for (ch in decodedTwice) {
+            val b = ch.code and 0xFF
+            acc = (acc + 9) % 256
+            val plain = b xor acc
+            acc = (acc + b) % 256
+            unmix.append(plain.toChar())
         }
         return unmix.toString()
     }
