@@ -1,10 +1,10 @@
 [
     {
         "iconUrl": "https://www.google.com/s2/favicons?domain=filmmakinesi.to&sz=%size%",
-        "fileHash": "sha256-c3524a2631ceaaaeb217bc40fbf4e1e6d4b9fdf519dce04d4e128774f8ff0529",
+        "fileHash": "sha256-7c91c9f28766db4e3ec4e75c6dc4665ed6f1149728c73a89a1b56fd95dcf8a59",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/galipgokalp/tv-cloudstream",
-        "fileSize": 26096,
+        "fileSize": 36193,
         "status": 1,
         "language": "tr",
         "authors": [
@@ -14,7 +14,7 @@
         "tvTypes": [
             "Movie"
         ],
-        "version": 9,
+        "version": 10,
         "internalName": "FilmMakinesi",
         "description": "Film Makinesi, en yeni ve en g\u00fcncel filmleri sitemizde full HD kalite fark\u0131 ile izleyebilirsiniz. HD film izle denildi\u011finde akla gelen en kaliteli film izleme sitesi.",
         "url": "https://raw.githubusercontent.com/galipgokalp/tv-cloudstream/builds/FilmMakinesi.cs3",
@@ -22,10 +22,10 @@
     },
     {
         "iconUrl": "https://www.google.com/s2/favicons?domain=www.fullhdfilmizlesene.mx&sz=%size%",
-        "fileHash": "sha256-64959e2c0de1c2f313b3f2839db68c6b70003c1e8677ac0cda195e25ff73db67",
+        "fileHash": "sha256-4d85de03674f5f7d7c665b2fb59aca9873bd6991dd15c2a848b2556ccfff4dbf",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/galipgokalp/tv-cloudstream",
-        "fileSize": 37412,
+        "fileSize": 44204,
         "status": 1,
         "language": "tr",
         "authors": [
@@ -34,7 +34,7 @@
         "tvTypes": [
             "Movie"
         ],
-        "version": 7,
+        "version": 8,
         "internalName": "FullHDFilmizlesene",
         "description": "Sinema zevkini evinize kadar getirdik. T\u00fcrkiye'nin lider Film sitesinde, en yeni filmleri Full HD izleyin.",
         "url": "https://raw.githubusercontent.com/galipgokalp/tv-cloudstream/builds/FullHDFilmizlesene.cs3",
