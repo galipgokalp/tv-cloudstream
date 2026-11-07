@@ -51,6 +51,20 @@ class FilmMakinesi : MainAPI() {
     private val cloudflareKiller by lazy { CloudflareKiller() }
     private val interceptor      by lazy { CloudflareInterceptor(cloudflareKiller) }
 
+    // ! 2026-11-07 TV kaniti: closeload (srv9.cdnimages*.cyou) ve rapidrame stream sunuculari
+    // ! Referer'siz istege 404 verir. Dahili oynatici interceptor YOKSA CronetDataSource kullanir ve
+    // ! (logda referer gorunse de) 404 aldi; ayni URL TV'de OkHttp+Referer ile 200 (#EXTM3U).
+    // ! CS3IPlayer.createVideoSource: interceptor != null -> OkHttpDataSource. Bu yuzden her video
+    // ! istegine Referer'i acikca ekleyen interceptor donduruyoruz (segmentler dahil).
+    override fun getVideoInterceptor(extractorLink: ExtractorLink): Interceptor {
+        val ref = extractorLink.referer
+        return Interceptor { chain ->
+            val req = chain.request()
+            if (ref.isBlank() || req.header("Referer") != null) chain.proceed(req)
+            else chain.proceed(req.newBuilder().header("Referer", ref).build())
+        }
+    }
+
     class CloudflareInterceptor(private val cloudflareKiller: CloudflareKiller) : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val request  = chain.request()
@@ -70,29 +84,29 @@ class FilmMakinesi : MainAPI() {
     // ! Kategori slug'lari 2026-08-11'de host-side dogrulandi (site tur-slug semasini degistirmis,
     // ! bazilarina "-fmN" soneki eklenmis; "Son Filmler"/"Son Diziler" yollari da degisti).
     override val mainPage = mainPageOf(
-        "${mainUrl}/filmler-1/sayfa/" to "Son Filmler",
-        "${mainUrl}/tur/aksiyon-fm1/film/sayfa/" to "Aksiyon",
-        "${mainUrl}/tur/bilim-kurgu-fm3/film/sayfa/" to "Bilim Kurgu",
+        "${mainUrl}/filmler-fmuyqb/sayfa/" to "Son Filmler",
+        "${mainUrl}/tur/aksiyon-fmgz9a/film/sayfa/" to "Aksiyon",
+        "${mainUrl}/tur/bilim-kurgu-fmgj8e/film/sayfa/" to "Bilim Kurgu",
         "${mainUrl}/tur/macera-fm1/film/sayfa/" to "Macera",
-        "${mainUrl}/tur/komedi-fm1/film/sayfa/" to "Komedi",
+        "${mainUrl}/tur/komedi-fma6cz/film/sayfa/" to "Komedi",
         "${mainUrl}/tur/romantik-fm1/film/sayfa/" to "Romantik",
         "${mainUrl}/tur/belgesel/film/sayfa/" to "Belgesel",
-        "${mainUrl}/tur/fantastik-fm1/film/sayfa/" to "Fantastik",
-        "${mainUrl}/tur/polisiye/film/sayfa/" to "Polisiye Suç",
-        "${mainUrl}/tur/korku-fm2/film/sayfa/" to "Korku",
+        "${mainUrl}/tur/fantastik-fmnqxr/film/sayfa/" to "Fantastik",
+        "${mainUrl}/tur/polisiye-fm7ztn/film/sayfa/" to "Polisiye Suç",
+        "${mainUrl}/tur/korku-fmr7du/film/sayfa/" to "Korku",
         "${mainUrl}/tur/animasyon-fm2/film/sayfa/" to "Animasyon",
         "${mainUrl}/tur/gizem/film/sayfa/" to "Gizem",
 
-        "${mainUrl}/yabanci-dizi-izle-1/sayfa/" to "Son Diziler",
-        "${mainUrl}/tur/aksiyon-fm1/dizi/sayfa/" to "Aksiyon Dizi",
-        "${mainUrl}/tur/bilim-kurgu-fm3/dizi/sayfa/" to "Bilim Kurgu Dizi",
+        "${mainUrl}/yabanci-dizi-izle-fmq45w/sayfa/" to "Son Diziler",
+        "${mainUrl}/tur/aksiyon-fmgz9a/dizi/sayfa/" to "Aksiyon Dizi",
+        "${mainUrl}/tur/bilim-kurgu-fmgj8e/dizi/sayfa/" to "Bilim Kurgu Dizi",
         "${mainUrl}/tur/macera-fm1/dizi/sayfa/" to "Macera Dizi",
-        "${mainUrl}/tur/komedi-fm1/dizi/sayfa/" to "Komedi Dizi",
+        "${mainUrl}/tur/komedi-fma6cz/dizi/sayfa/" to "Komedi Dizi",
         "${mainUrl}/tur/romantik-fm1/dizi/sayfa/" to "Romantik Dizi",
         "${mainUrl}/tur/belgesel/dizi/sayfa/" to "Belgesel Dizi",
-        "${mainUrl}/tur/fantastik-fm1/dizi/sayfa/" to "Fantastik Dizi",
-        "${mainUrl}/tur/polisiye/dizi/sayfa/" to "Polisiye Dizi",
-        "${mainUrl}/tur/korku-fm2/dizi/sayfa/" to "Korku Dizi",
+        "${mainUrl}/tur/fantastik-fmnqxr/dizi/sayfa/" to "Fantastik Dizi",
+        "${mainUrl}/tur/polisiye-fm7ztn/dizi/sayfa/" to "Polisiye Dizi",
+        "${mainUrl}/tur/korku-fmr7du/dizi/sayfa/" to "Korku Dizi",
         "${mainUrl}/tur/animasyon-fm2/dizi/sayfa/" to "Animasyon Dizi",
         "${mainUrl}/tur/gizem/dizi/sayfa/" to "Gizem Dizi",
     )
